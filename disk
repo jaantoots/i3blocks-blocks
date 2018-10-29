@@ -1,0 +1,43 @@
+#!/bin/bash
+# Copyright (C) 2014 Julien Bonjean <julien@bonjean.info>
+# Copyright (C) 2018 Jaan Toots <jaan@jaantoots.org>
+
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+#------------------------------------------------------------------------
+
+source ~/.config/i3blocks/environment
+
+DIR="${BLOCK_INSTANCE:-$HOME}"
+LOW="${1:-10}"
+CRITICAL="${2:-5}"
+
+#------------------------------------------------------------------------
+
+format() {
+    read free use
+    if [[ $((100 - use)) -lt $CRITICAL ]]; then
+        color="$base08"
+    elif [[ $((100 - use)) -lt $LOW ]]; then
+        color="$base0A"
+    fi
+    echo "$disk_icon ${free}G"
+    echo "${free}G"
+    echo "$color"
+}
+
+#------------------------------------------------------------------------
+
+df -P -l "$DIR" |
+    awk '/^\// {printf("%.2f %d\n", $4/1024/1024, $5); exit 0;}' | format

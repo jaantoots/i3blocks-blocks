@@ -1,0 +1,75 @@
+#!/bin/bash
+# Copyright (C) 2014 Julien Bonjean <julien@bonjean.info>
+# Copyright (C) 2014 Alexander Keller <github@nycroth.com>
+# Copyright (C) 2018 Jaan Toots <jaan@jaantoots.org>
+
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+#------------------------------------------------------------------------
+
+source ~/.config/i3blocks/environment
+
+MIXER="${2:-pulse}"
+SCONTROL="${BLOCK_INSTANCE:-$(amixer -D $MIXER scontrols |
+    sed -n "s/Simple mixer control '\([A-Za-z ]*\)',0/\1/p" |
+    head -n1
+)}"
+STEP="${1:-5%}"
+
+#------------------------------------------------------------------------
+
+capability() { # Return "Capture" if the device is a capture device
+    amixer -D $MIXER get $SCONTROL |
+        sed -n "s/  Capabilities:.*cvolume.*/Capture/p"
+}
+
+volume() {
+    sed_filter='s/.*\[([0-9]+%)\] (\[(-?[0-9]+.[0-9]+dB)\] )?\[(on|off)\]/'
+    # If dB was selected, print that instead
+    sed_filter+="$([[ "$STEP" = *dB ]] && echo '\3' || echo '\1')"
+    sed_filter+=' \4/p'
+    amixer -D $MIXER get $SCONTROL $(capability) |
+        sed -nE "$sed_filter" | head -1
+}
+
+format() {
+    read vol state
+    icon="${volume_icons[0]}"
+    case "$state" in
+        on)
+            icon="${volume_icons[2]}"
+            if [[ "$vol" = *% ]] && [[ "${vol%\%}" -lt 33 ]]; then
+                icon="${volume_icons[1]}"
+            fi
+            ;;
+        off)
+            color="$base0A"
+            ;;
+        *)
+            color="$base08"
+    esac
+    echo "$icon $vol"
+    echo "$vol"
+    echo "$color"
+}
+
+#------------------------------------------------------------------------
+
+case $BLOCK_BUTTON in
+    3) amixer -q -D $MIXER sset $SCONTROL $(capability) toggle ;;  # right click
+    4) amixer -q -D $MIXER sset $SCONTROL $(capability) ${STEP}- ;; # scroll down
+    5) amixer -q -D $MIXER sset $SCONTROL $(capability) ${STEP}+ ;; # scroll up
+esac
+
+volume | format

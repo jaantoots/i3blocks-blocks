@@ -1,0 +1,54 @@
+#!/bin/bash
+# Copyright (C) 2014 Alexander Keller <github@nycroth.com>
+# Copyright (C) 2018 Jaan Toots <jaan@jaantoots.org>
+
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+#------------------------------------------------------------------------
+
+source ~/.config/i3blocks/environment
+
+INTERFACE="${BLOCK_INSTANCE}"
+if [[ -z $INTERFACE ]]; then
+    for iface in /sys/class/net/wl*; do
+        [[ -d ${iface}/wireless ]] && INTERFACE=$(basename $iface) && break
+    done
+fi
+
+[[ -n $INTERFACE ]] && [[ -d /sys/class/net/${INTERFACE}/wireless ]] || exit
+
+#------------------------------------------------------------------------
+
+case $BLOCK_BUTTON in
+    3) termf -e sudo wifi-menu >/dev/null ;;  # right click
+esac
+
+#------------------------------------------------------------------------
+
+color="$base08"
+if [[ "$(cat /sys/class/net/$INTERFACE/operstate)" = "up" ]]; then
+    IFS=$'\n' read -d '' essid freq bitr < <(iwconfig $INTERFACE | sed -nE '
+        s/.*ESSID:"(.*)".*/\1/p
+        s/.*Frequency:([0-9]+(\.[0-9]+)? \S+).*/\1/p
+        s/.*Bit Rate=([0-9]+(\.[0-9]+)? \S+).*/\1/p')
+    color=
+    [[ "${freq%%.*}" -gt 3 ]] && color="$base0B"
+    ip="$(ip addr show $INTERFACE | grep -m1 -oP '\s*inet6? \K[^/]+')"
+fi
+echo "${wifi_icon}${ip:+ $ip}${essid:+ $essid}${freq:+ $freq}${bitr:+ $bitr}"
+echo "$essid"
+echo "$color"
+if [[ -n "$ip" ]]; then
+    ip addr show $INTERFACE | grep -qsE '\s*inet ' || exit 33
+fi

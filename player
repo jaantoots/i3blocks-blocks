@@ -1,0 +1,78 @@
+#!/bin/bash
+# Copyright (C) 2018 Jaan Toots <jaan@jaantoots.org>
+
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+#------------------------------------------------------------------------
+
+source ~/.config/i3blocks/environment
+
+PLAYER="${BLOCK_INSTANCE:-$(playerctl -l | head -1)}"
+
+[[ -n "$PLAYER" ]] || exit
+
+#------------------------------------------------------------------------
+
+toggle() {
+    case "$(playerctl -p "$PLAYER" status)" in
+        [Pp]laying|[Pp]aused|[Ss]topped)
+            playerctl -p "$PLAYER" play-pause
+            ;;
+        [Nn]ot\ available)
+            args_name="player_${PLAYER}_args"
+            i3-msg "exec $PLAYER ${!args_name}" >/dev/null
+            ;;
+    esac
+}
+
+metadata() {
+    title="$(playerctl -p "$PLAYER" metadata title)"
+    artist="$(playerctl -p "$PLAYER" metadata artist)"
+    echo "${title} — ${artist}"
+}
+
+format() {
+    short=
+    long=
+    color=
+    icon_name="player_${PLAYER}_icon"
+    icon="${!icon_name:-$player_icon}"
+    case "$(playerctl -p "$PLAYER" status)" in
+        [Pp]laying)
+            short+="${player_icons[0]}"
+            long+="$(metadata)"
+            color="$base0B"
+            ;;
+        [Pp]aused)
+            short+="${player_icons[1]}"
+            long+="$(metadata)"
+            ;;
+        [Ss]topped)
+            short+="${player_icons[2]}"
+            ;;
+        *)
+            color="$base08"
+    esac
+    echo "$icon${short:+ $short}${long:+ ${long:0:80}}"
+    echo "$short"
+    echo "$color"
+}
+
+#------------------------------------------------------------------------
+
+case $BLOCK_BUTTON in
+  3) toggle ;;  # right click
+esac
+
+format

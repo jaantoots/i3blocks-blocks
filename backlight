@@ -1,0 +1,57 @@
+#!/bin/bash
+# Copyright (C) 2018 Jaan Toots <jaan@jaantoots.org>
+
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+#------------------------------------------------------------------------
+
+source ~/.config/i3blocks/environment
+
+DISP="${BLOCK_INSTANCE}"
+STEP="${1:-5}"
+
+#------------------------------------------------------------------------
+
+backlight() {
+    xbacklight ${DISP:+-display ${DISP}} "$@"
+}
+
+level() {
+    printf "%.0f\n" "$(backlight -get | head -1)"
+}
+
+toggle() {
+    case "$(level)" in
+        0|1) backlight -set 30 ;;
+        30) backlight -set 100 ;;
+        *) backlight -set 1
+    esac
+}
+
+format() {
+    read backlight || exit
+    echo "${backlight_icon} ${backlight}%"
+    echo "${backlight}%"
+    echo
+}
+
+#------------------------------------------------------------------------
+
+case $BLOCK_BUTTON in
+    3) toggle ;;  # right click
+    4) backlight -time 50 -dec $STEP ;; # scroll down
+    5) backlight -time 50 -inc $STEP ;; # scroll up
+esac
+
+level | format

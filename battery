@@ -1,0 +1,76 @@
+#!/bin/bash
+# Copyright (C) 2018 Jaan Toots <jaan@jaantoots.org>
+
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+#------------------------------------------------------------------------
+
+source ~/.config/i3blocks/environment
+
+BAT="${BLOCK_INSTANCE:-BAT0}"
+BATP="/sys/class/power_supply/$BAT"
+LOW="${1:-25}"
+CRITICAL="${2:-15}"
+URGENT="${3:-10}"
+
+[[ -d "$BATP" ]] || exit
+
+#------------------------------------------------------------------------
+
+time_format() {
+    read secs
+    [[ -n $secs ]] || return
+    printf "%02d:%02d\n" $((secs/3600)) $(((secs % 3600)/60))
+}
+
+#------------------------------------------------------------------------
+
+read state capacity full charge current voltage < \
+    <(cat $BATP/{status,capacity,charge_full,{charge,current,voltage}_now} |
+        xargs)
+
+percent="$(printf "scale=2; 100*%d/%d\n" $charge $full | bc)"
+power="$(printf "scale=1; %d*%d/10^12\n" $voltage $current | bc)"
+
+case "$state" in
+    "Charging")
+        icon=${power_icons[0]}
+        time=$((3600*(full - charge)/current))
+        ;;
+    "Discharging")
+        icon=${battery_icons[$(((capacity + 12)/25))]}
+        time=$((3600*charge/current))
+        if [[ $capacity -le $CRITICAL ]]; then
+            color="$base08"
+        elif [[ $capacity -le $LOW ]]; then
+            color="$base0A"
+        fi
+        ;;
+    "Full")
+        icon=${power_icons[1]}
+        power=
+        color="$base0B"
+        ;;
+    *)
+        icon=${power_icons[2]}
+        power=
+esac
+
+time="$(time_format <<<$time)"
+echo "$icon $percent%${time:+ $time}${power:+ ${power}W}"
+echo "$percent%"
+echo "$color"
+if [[ $capacity -le $URGENT ]]; then
+    exit 33
+fi

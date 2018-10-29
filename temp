@@ -1,0 +1,41 @@
+#!/bin/bash
+# Copyright (C) 2018 Jaan Toots <jaan@jaantoots.org>
+
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+#------------------------------------------------------------------------
+
+source ~/.config/i3blocks/environment
+
+HIGH="${1:-70}"
+CRITICAL="${2:-85}"
+URGENT="${3:-95}"
+
+#------------------------------------------------------------------------
+
+temp=$(cat /sys/devices/platform/coretemp.0/hwmon/hwmon?/temp1_input | head -1)
+temp=$((temp/1000))
+icon=${temp_icons[$((temp >= 40 ? (temp < 90 ? (temp - 40)/10 : 4) : 0))]}
+if [[ $temp -ge $CRITICAL ]]; then
+    color="$base08"
+elif [[ $temp -ge $HIGH ]]; then
+    color="$base0A"
+fi
+
+echo "$icon $temp°C"
+echo "$temp°C"
+echo "$color"
+if [[ $temp -ge $URGENT ]]; then
+    exit 33
+fi
