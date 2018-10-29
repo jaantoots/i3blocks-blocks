@@ -28,7 +28,7 @@
 void htop() {
     /* fork htop */
     int pid = fork();
-    if (pid == 0) execlp(TERMINAL, TERMINAL, "-e", "htop", NULL);
+    if (pid == 0) execlp(TERMINAL, TERMINAL, "--detach", "-e", "htop", NULL);
 }
 
 int main(int argc, char *argv[]) {
