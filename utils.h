@@ -1,4 +1,4 @@
-/* Icon definitions
+/* Utility functions
  * Copyright (C) 2018 Jaan Toots <jaan@jaantoots.org>
  *
  * This program is free software: you can redistribute it and/or modify
@@ -15,20 +15,16 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef ICONS_H
-#define ICONS_H
+#ifndef UTILS_H
+#define UTILS_H
 
-static const char disk_icon[] = " ";
-static const char wifi_icon[] = " ";
-static const char backlight_icon[] = " ";
-static const char load_icon[] = " ";
-static const char time_icon[] = " ";
-static const char player_icon[] = " ";
-static const char player_spotify_icon[] = " ";
-static const char player_icons[] = "   ";
-static const char volume_icons[] = "   ";
-static const char * const power_icons[] = {" "," "," "};
-static const char * const battery_icons[] = {" "," "," "," "," "};
-static const char * const temp_icons[] = {" "," "," "," "," "};
+#include <stdlib.h>
+#include <string.h>
 
-#endif /* ICONS_H */
+int getenvi(const char *name, const int val) {
+    /* return environment variable or default */
+    const char *env = getenv(name);
+    return (env != NULL) ? atoi(env) : val;
+}
+
+#endif /* UTILS_H */
