@@ -28,7 +28,15 @@
 void htop() {
     /* fork htop */
     int pid = fork();
-    if (pid == 0) execlp(TERMINAL, TERMINAL, "--detach", "-e", "htop", NULL);
+    if (pid < 0) exit(EXIT_FAILURE);
+    if (pid == 0) {
+        if (setpgid(0, 0) < 0) exit(EXIT_FAILURE);
+        pid = fork();
+        if (pid < 0) exit(EXIT_FAILURE);
+        if (pid > 0) exit(EXIT_SUCCESS);
+        for (long i = sysconf(_SC_OPEN_MAX); i >= 0; --i) close(i);
+        execlp(TERMINAL, TERMINAL, "-e", "htop", NULL);
+    }
 }
 
 int main(int argc, char *argv[]) {
@@ -50,9 +58,10 @@ int main(int argc, char *argv[]) {
     fscanf(fload, "%f %f %f", load, load + 1, load + 2);
     fclose(fload);
 
-    if (longf) printf("%s%.2f %.2f %.2f\n",
-            load_icon, load[0], load[1], load[2]);
-    else printf("%s%.2f\n", load_icon, load[0]);
+    if (longf)
+        printf("%s%.2f %.2f %.2f\n", load_icon, load[0], load[1], load[2]);
+    else
+        printf("%s%.2f\n", load_icon, load[0]);
     printf("%.2f\n", load[0]);
     printf("%s\n", (load[0] > get_nprocs()) ? base08 : "");
     return 0;
