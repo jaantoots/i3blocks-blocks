@@ -29,6 +29,6 @@ static const char player_icons[] = "   ";
 static const char volume_icons[] = "   ";
 static const char power_icons[] = "   ";
 static const char battery_icons[] = "     ";
-static const char temp_icons[] = "     ";
+static const char * const temp_icons[] = {" "," "," "," "," "};
 
 #endif /* ICONS_H */
