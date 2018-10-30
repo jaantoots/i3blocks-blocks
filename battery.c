@@ -34,8 +34,8 @@
 int batread(const char *dir, const char *fname, const char *fmt, void *value) {
     /* read value from specified file */
     char name[MAXLEN] = {'\0'};
-    strncpy(name, dir, MAXLEN - 1);
-    strncat(name, fname, MAXLEN - strlen(name) - 1);
+    strncpy(name, dir, sizeof name - 1);
+    strncat(name, fname, sizeof name - strlen(name) - 1);
     FILE *file = fopen(name, "r");
     if (file == NULL) {
         perror(name);
@@ -51,7 +51,7 @@ int main(int argc, char *argv[]) {
     /* get battery path */
     const char *instance = getenv("BLOCK_INSTANCE");
     char dir[MAXLEN];
-    snprintf(dir, MAXLEN, BAT "/%s/",
+    snprintf(dir, sizeof dir, BAT "/%s/",
             (instance != NULL && strlen(instance) > 0) ? instance : BAT0);
 
     /* read battery status values */

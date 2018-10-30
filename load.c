@@ -28,9 +28,8 @@
 void htop() {
     /* fork htop */
     int pid = fork();
-    if (pid < 0) exit(EXIT_FAILURE);
-    if (pid == 0) {
-        if (setpgid(0, 0) < 0) exit(EXIT_FAILURE);
+    if (!(pid)) {
+        if (setpgid(0, 0)) exit(EXIT_FAILURE);
         pid = fork();
         if (pid < 0) exit(EXIT_FAILURE);
         if (pid > 0) exit(EXIT_SUCCESS);

@@ -44,7 +44,7 @@ int main(int argc, char *argv[]) {
     char hwmon[MAXLEN];
     while ((dp = readdir(dir)) != NULL) {
         if (dp->d_type == DT_DIR && !(strncmp(dp->d_name, "hwmon", 5))) {
-            snprintf(hwmon, MAXLEN, HWMON "/%s/temp1_input", dp->d_name);
+            snprintf(hwmon, sizeof hwmon, HWMON "/%s/temp1_input", dp->d_name);
             break;
         }
     }
