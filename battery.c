@@ -29,9 +29,9 @@
 #define BAT_CRITICAL 15
 #define BAT_URGENT 10
 
-#define BATREAD(dir, fmt, var) batread(dir, #var, fmt, &var);
+#define BATREAD(dir, fmt, var) batread(dir, #var, fmt, &var)
 
-void batread(const char *dir, const char *fname, const char *fmt, void *value) {
+int batread(const char *dir, const char *fname, const char *fmt, void *value) {
     /* read value from specified file */
     char name[MAXLEN] = {'\0'};
     strncpy(name, dir, MAXLEN - 1);
@@ -39,11 +39,12 @@ void batread(const char *dir, const char *fname, const char *fmt, void *value) {
     FILE *file = fopen(name, "r");
     if (file == NULL) {
         perror(name);
-        return;
+        return 1;
     }
     fscanf(file, fmt, value);
     if (ferror(file)) perror(name);
     fclose(file);
+    return 0;
 }
 
 int main(int argc, char *argv[]) {
@@ -56,7 +57,7 @@ int main(int argc, char *argv[]) {
     /* read battery status values */
     char *status;
     long long capacity, charge_full, charge_now, current_now, voltage_now;
-    BATREAD(dir, "%ms", status);
+    if (BATREAD(dir, "%ms", status)) return 0;
     BATREAD(dir, "%Ld", capacity);
     BATREAD(dir, "%Ld", charge_full);
     BATREAD(dir, "%Ld", charge_now);
