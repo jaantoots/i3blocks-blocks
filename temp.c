@@ -21,6 +21,7 @@
 
 #include "colors.h"
 #include "icons.h"
+#include "utils.h"
 
 #define HWMON "/sys/devices/platform/coretemp.0/hwmon"
 #define MAXLEN 512
@@ -30,12 +31,6 @@
 
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
-
-int getenvd(const char *name, const int val) {
-    /* return environment variable or default */
-    const char *env = getenv(name);
-    return (env != NULL) ? atoi(env) : val;
-}
 
 int main(int argc, char *argv[]) {
     /* find directory in HWMON as these end with a non-standard integer */
@@ -60,9 +55,9 @@ int main(int argc, char *argv[]) {
     temp /= 1000;
 
     /* print and format temperature */
-    int high = getenvd("_high", TEMP_HIGH);
-    int critical = getenvd("_critical", TEMP_CRITICAL);
-    int urgent = getenvd("_urgent", TEMP_URGENT);
+    int high = getenvi("_high", TEMP_HIGH);
+    int critical = getenvi("_critical", TEMP_CRITICAL);
+    int urgent = getenvi("_urgent", TEMP_URGENT);
     printf("%s%d°C\n", temp_icons[MAX(0, MIN(4, (temp - 40)/10))], temp);
     printf("%d°C\n", temp);
     printf("%s\n",
