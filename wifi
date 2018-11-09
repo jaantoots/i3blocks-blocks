@@ -39,9 +39,9 @@ esac
 color="$base08"
 if [[ "$(cat /sys/class/net/$INTERFACE/operstate)" = "up" ]]; then
     IFS=$'\n' read -d '' essid freq bitr < <(iwconfig $INTERFACE | sed -nE '
-        s/.*ESSID:"(.*)".*/\1/p
-        s/.*Frequency:([0-9]+(\.[0-9]+)? \S+).*/\1/p
-        s/.*Bit Rate=([0-9]+(\.[0-9]+)? \S+).*/\1/p')
+        s/.*ESSID[=:]"(.*)".*/\1/p
+        s/.*Frequency[=:]([0-9]+(\.[0-9]+)? \S+).*/\1/p
+        s/.*Bit Rate[=:]([0-9]+(\.[0-9]+)? \S+).*/\1/p')
     color=
     [[ "${freq%%.*}" -gt 3 ]] && color="$base0B"
     ip="$(ip addr show $INTERFACE | grep -m1 -oP '\s*inet6? \K[^/]+')"
