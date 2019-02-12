@@ -29,8 +29,6 @@
 #define BAT_CRITICAL 15
 #define BAT_URGENT 10
 
-#define BATREAD(dir, fmt, var) batread(dir, #var, fmt, &var)
-
 int batread(const char *dir, const char *fname, const char *fmt, void *value) {
     /* read value from specified file */
     char name[MAXLEN] = {'\0'};
@@ -57,12 +55,17 @@ int main(int argc, char *argv[]) {
     /* read battery status values */
     char *status;
     long long capacity, charge_full, charge_now, current_now, voltage_now;
-    if (BATREAD(dir, "%ms", status)) return 0;
-    BATREAD(dir, "%Ld", capacity);
-    BATREAD(dir, "%Ld", charge_full);
-    BATREAD(dir, "%Ld", charge_now);
-    BATREAD(dir, "%Ld", current_now);
-    BATREAD(dir, "%Ld", voltage_now);
+    if (batread(dir, "status", "%ms", &status)) return 0;
+    if (batread(dir, "capacity", "%Ld", &capacity)) return 1;
+    if (batread(dir, "charge_full", "%Ld", &charge_full) &&
+            batread(dir, "energy_full", "%Ld", &charge_full)) return 1;
+    if (batread(dir, "charge_now", "%Ld", &charge_now) &&
+            batread(dir, "energy_now", "%Ld", &charge_now)) return 1;
+    if (batread(dir, "voltage_now", "%Ld", &voltage_now)) return 0;
+    if (batread(dir, "current_now", "%Ld", &current_now)) {
+        if (batread(dir, "power_now", "%Ld", &current_now)) return 1;
+        voltage_now = 1e6;
+    }
 
     /* format block */
     const char *icon = power_icons[0];
